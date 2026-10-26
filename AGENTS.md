@@ -17,6 +17,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 包管理器：pnpm 10.34.9（`packageManager`）。不要改用 pnpm 11、pnpm 12，也不要无锁安装。
 - Node.js：24.16.0，见 `.node-version`。
 - 开发：`pnpm dev`。检查：`pnpm check`（lint、typecheck、test、build）。
+- 集成测试：`pnpm test:integration`。需要 PostgreSQL，会删除并重建名称以 `_test` 结尾的测试库。
 - 环境：复制 `.env.example` 为 `.env.local`。不要把密钥写入仓库。
 
 ## 依赖方向

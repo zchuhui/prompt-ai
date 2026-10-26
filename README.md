@@ -1,6 +1,6 @@
 # Prompt Gallery
 
-面向公众的图片生成 Prompt 灵感库。当前仓库完成了工程初始化：首页可以启动，数据表、登录和上传尚未实现。
+面向公众的图片生成 Prompt 灵感库。当前仓库完成了工程初始化和数据层：首页可以启动，数据库可以迁移并写入开发种子。登录和上传尚未实现。
 
 ## 环境
 
@@ -29,9 +29,13 @@ pnpm dev
 
 ```powershell
 docker compose --env-file .env.local up -d postgres minio minio-init
+pnpm db:migrate
+pnpm db:seed
 ```
 
 数据库端口 `5432` 和 MinIO 端口 `9000`、`9001` 只绑定本机回环地址。容器之间使用服务名 `postgres` 和 `minio`，不要在容器里写 `localhost`。
+
+`pnpm db:migrate` 和 `pnpm db:seed` 会读取 `.env.local`。种子只创建分类、标签、模型和未发布草稿。
 
 ## 脚本
 
@@ -42,7 +46,11 @@ docker compose --env-file .env.local up -d postgres minio minio-init
 | `pnpm start` | 复制静态资源后启动 standalone 服务 |
 | `pnpm lint` | `eslint .` |
 | `pnpm typecheck` | 生成 Next 路由类型后执行 `tsc --noEmit` |
-| `pnpm test` | 运行 Vitest |
+| `pnpm test` | 运行 Vitest 单元测试 |
+| `pnpm test:integration` | 在独立测试库上运行迁移、约束和草稿隔离测试 |
+| `pnpm db:generate` | 根据 schema 生成迁移 |
+| `pnpm db:migrate` | 应用迁移 |
+| `pnpm db:seed` | 幂等写入开发种子 |
 | `pnpm check` | lint、typecheck、test、build |
 
-`db:*`、`worker:*` 和 `admin:*` 会在后续任务里加入。
+`pnpm test:integration` 会删除并重建 `DATABASE_URL` 对应的 `*_test` 库，不会动开发库。`worker:*` 和 `admin:*` 会在后续任务里加入。
