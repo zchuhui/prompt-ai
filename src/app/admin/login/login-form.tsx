@@ -1,7 +1,10 @@
 "use client";
 
+import { CircleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, Input } from "@/components/ui/input";
 
 export function LoginForm() {
   const router = useRouter();
@@ -33,45 +36,32 @@ export function LoginForm() {
       router.push("/admin");
       router.refresh();
     } catch {
-      setError("登录失败");
+      setError("网络连接失败，请稍后重试");
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <form className="mt-8 flex flex-col gap-4" onSubmit={onSubmit}>
-      <label className="flex flex-col gap-2 text-sm">
-        用户名
-        <input
-          className="min-h-11 rounded-md border border-border bg-background px-3"
-          name="username"
-          autoComplete="username"
-          required
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-sm">
-        密码
-        <input
-          className="min-h-11 rounded-md border border-border bg-background px-3"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-        />
-      </label>
+    <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
+      <Field label="用户名">
+        <Input autoComplete="username" name="username" required />
+      </Field>
+      <Field label="密码">
+        <Input autoComplete="current-password" name="password" required type="password" />
+      </Field>
       {error ? (
-        <p className="text-sm text-accent" role="alert">
+        <p
+          className="flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger"
+          role="alert"
+        >
+          <CircleAlert aria-hidden="true" className="size-4 shrink-0" />
           {error}
         </p>
       ) : null}
-      <button
-        className="min-h-11 rounded-md bg-accent px-4 text-sm text-background disabled:opacity-60"
-        type="submit"
-        disabled={pending}
-      >
+      <Button className="mt-2 w-full" loading={pending} type="submit">
         {pending ? "正在登录" : "登录"}
-      </button>
+      </Button>
     </form>
   );
 }

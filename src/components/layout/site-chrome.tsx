@@ -5,9 +5,9 @@ import { Sheet } from "@/components/ui/sheet";
 import { HeaderSearch } from "./header-search";
 import { SiteNav } from "./site-nav";
 
-export function BrandMark() {
+export function BrandMark({ href = "/" }: { href?: string }) {
   return (
-    <Link className="group inline-flex items-center gap-2.5" href="/">
+    <Link className="group inline-flex items-center gap-2.5" href={href}>
       <span className="relative inline-flex size-8 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 text-accent shadow-[0_0_20px_-6px_var(--accent)]">
         <Sparkles aria-hidden="true" className="size-4" />
       </span>
