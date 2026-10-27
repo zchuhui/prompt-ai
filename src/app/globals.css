@@ -124,16 +124,6 @@ dialog::backdrop {
   }
 }
 
-.gallery-grid[data-masonry="ready"] > * {
-  padding-bottom: 12px;
-}
-
-@media (min-width: 768px) {
-  .gallery-grid[data-masonry="ready"] > * {
-    padding-bottom: 16px;
-  }
-}
-
 .glow-card {
   border: 1px solid var(--border);
   background: var(--surface);

@@ -6,6 +6,8 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { AppError } from "@/shared/errors";
 import { getProcessEnv, type Env } from "./env-core";
 
@@ -59,6 +61,61 @@ export class MemoryStorage implements ObjectStorage {
   }
 
   async ready(): Promise<void> {}
+}
+
+/** Local development and E2E only: lets the web process and the worker share files. */
+export class FileStorage implements ObjectStorage {
+  constructor(private readonly root: string) {}
+
+  private resolve(key: string): string {
+    const target = path.resolve(this.root, key);
+    if (!target.startsWith(path.resolve(this.root) + path.sep)) {
+      throw new AppError(400, "INVALID_INPUT", "对象键不合法");
+    }
+    return target;
+  }
+
+  async put(key: string, body: Uint8Array): Promise<void> {
+    const target = this.resolve(key);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, body);
+  }
+
+  async get(key: string): Promise<Uint8Array> {
+    try {
+      return new Uint8Array(await readFile(this.resolve(key)));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        throw new AppError(404, "NOT_FOUND", "对象不存在");
+      }
+      throw error;
+    }
+  }
+
+  async delete(key: string): Promise<void> {
+    await rm(this.resolve(key), { force: true });
+  }
+
+  async list(prefix: string): Promise<StoredObject[]> {
+    const root = path.resolve(this.root);
+    const entries = await readdir(root, { recursive: true, withFileTypes: true }).catch(() => []);
+    const objects: StoredObject[] = [];
+    for (const entry of entries) {
+      if (!entry.isFile()) {
+        continue;
+      }
+      const full = path.join(entry.parentPath, entry.name);
+      const key = path.relative(root, full).split(path.sep).join("/");
+      if (key.startsWith(prefix)) {
+        objects.push({ key, lastModified: (await stat(full)).mtime });
+      }
+    }
+    return objects;
+  }
+
+  async ready(): Promise<void> {
+    await mkdir(this.root, { recursive: true });
+  }
 }
 
 export function createS3Storage(env: Env): ObjectStorage {
@@ -137,6 +194,7 @@ export function createS3Storage(env: Env): ObjectStorage {
 
 const globalStorage = globalThis as typeof globalThis & {
   promptGalleryMemory?: MemoryStorage;
+  promptGalleryFs?: FileStorage;
   promptGalleryS3?: ObjectStorage;
   promptGalleryOverride?: ObjectStorage;
 };
@@ -161,6 +219,10 @@ export function getStorage(): ObjectStorage {
   if (env.STORAGE_DRIVER === "memory") {
     globalStorage.promptGalleryMemory ??= new MemoryStorage();
     return globalStorage.promptGalleryMemory;
+  }
+  if (env.STORAGE_DRIVER === "fs") {
+    globalStorage.promptGalleryFs ??= new FileStorage(env.STORAGE_FS_ROOT);
+    return globalStorage.promptGalleryFs;
   }
   globalStorage.promptGalleryS3 ??= createS3Storage(env);
   return globalStorage.promptGalleryS3;

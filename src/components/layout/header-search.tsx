@@ -1,17 +1,19 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { cn } from "@/components/ui/utils";
 
 export function HeaderSearch({ className, shortcut = true }: { className?: string; shortcut?: boolean }) {
   const input = useRef<HTMLInputElement>(null);
   const params = useSearchParams();
+  const pathname = usePathname();
   const q = params.get("q") ?? "";
+  const onGallery = pathname === "/";
 
   useEffect(() => {
-    if (!shortcut) {
+    if (!shortcut || onGallery) {
       return;
     }
     const onKey = (event: KeyboardEvent) => {
@@ -28,7 +30,11 @@ export function HeaderSearch({ className, shortcut = true }: { className?: strin
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [shortcut]);
+  }, [shortcut, onGallery]);
+
+  if (onGallery && shortcut) {
+    return null;
+  }
 
   return (
     <form action="/" className={cn("relative", className)} method="get" role="search">

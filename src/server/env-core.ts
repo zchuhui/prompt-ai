@@ -17,7 +17,12 @@ export const envSchema = z.object({
   RATE_LIMIT_SECRET: z.string().min(1),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),
   WORKER_CONCURRENCY: z.coerce.number().int().positive(),
-  STORAGE_DRIVER: z.enum(["s3", "memory"]).default("s3"),
+  STORAGE_DRIVER: z.enum(["s3", "memory", "fs"]).default("s3"),
+  STORAGE_FS_ROOT: z.string().min(1).default(".data/storage"),
+  NODE_ENV: z.string().optional(),
+}).refine((env) => env.STORAGE_DRIVER !== "fs" || env.NODE_ENV !== "production", {
+  path: ["STORAGE_DRIVER"],
+  message: "fs storage is only for local development and tests",
 });
 
 export type Env = z.infer<typeof envSchema>;
