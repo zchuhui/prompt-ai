@@ -7,7 +7,6 @@ import {
   Check,
   ExternalLink,
   GripVertical,
-  ImageOff,
   LoaderCircle,
   Plus,
   RefreshCw,
@@ -31,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/components/ui/utils";
 import { AdminApiError, adminFetch, errorMessage, useCsrfToken } from "@/features/auth/admin-client";
+import { AdminThumb } from "@/features/prompts/components/admin-thumb";
 import { StatusBadge } from "@/features/prompts/components/status-badge";
 import { moveItem } from "@/shared/array";
 import { formatDateTime } from "@/shared/format";
@@ -72,31 +72,6 @@ function snapshot(collection: EditorCollection) {
     coverAssetId: collection.coverAssetId,
     promptIds: collection.members.map((member) => member.promptId),
   });
-}
-
-function Thumb({ assetId, className }: { assetId: string | null; className?: string }) {
-  return (
-    <span
-      className={cn(
-        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-surface-2 text-muted",
-        className,
-      )}
-    >
-      <ImageOff aria-hidden="true" className="size-4" />
-      {assetId ? (
-        <img
-          alt=""
-          className="absolute inset-0 size-full object-cover"
-          draggable={false}
-          loading="lazy"
-          src={`/api/v1/admin/media/${assetId}/card`}
-          onError={(event) => {
-            event.currentTarget.hidden = true;
-          }}
-        />
-      ) : null}
-    </span>
-  );
 }
 
 function PromptSearch({
@@ -181,7 +156,7 @@ function PromptSearch({
           const added = memberIds.has(item.id);
           return (
             <li className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-surface-2/60" key={item.id}>
-              <Thumb assetId={item.coverAssetId} className="size-10" />
+              <AdminThumb assetId={item.coverAssetId} className="size-10" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm">{item.title || "未命名"}</span>
                 {item.status === "draft" ? <span className="text-[11px] text-muted">草稿 · 前台不显示</span> : null}
@@ -465,7 +440,7 @@ export function CollectionEditor({ initial }: { initial: EditorCollection }) {
                     >
                       <GripVertical aria-hidden="true" className="size-4 shrink-0 cursor-grab text-muted" />
                       <span className="w-6 shrink-0 text-right font-mono text-[11px] text-muted">{index + 1}</span>
-                      <Thumb assetId={member.coverAssetId} className="size-10" />
+                      <AdminThumb assetId={member.coverAssetId} className="size-10" />
                       <span className="min-w-0 flex-1">
                         <Link
                           className="block truncate text-sm hover:text-accent"
@@ -555,7 +530,7 @@ export function CollectionEditor({ initial }: { initial: EditorCollection }) {
                         type="button"
                         onClick={() => edit({ coverAssetId: member.coverAssetId })}
                       >
-                        <Thumb assetId={member.coverAssetId} className="absolute inset-0 size-full rounded-none border-0" />
+                        <AdminThumb assetId={member.coverAssetId} className="absolute inset-0 size-full rounded-none border-0" />
                         {selected ? (
                           <span className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-accent text-on-accent">
                             <Check aria-hidden="true" className="size-3" />
