@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { mergeServerAssets, moveItem, toPatch, type EditorAsset, type EditorPrompt } from "./editor-state";
+import { moveItem } from "@/shared/array";
+import { mergeServerAssets, toPatch, type EditorAsset, type EditorPrompt } from "./editor-state";
 
 const asset = (assetId: string, status = "ready", alt: string | null = null): EditorAsset => ({
   assetId,

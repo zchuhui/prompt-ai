@@ -28,8 +28,9 @@ import { cn } from "@/components/ui/utils";
 import { AdminApiError, adminFetch, errorMessage, useCsrfToken } from "@/features/auth/admin-client";
 import { UploadQueue } from "@/features/uploads/components/upload-queue";
 import { formatDateTime } from "@/shared/format";
+import { moveItem } from "@/shared/array";
 import { createSlug, isValidSlug } from "@/shared/slug";
-import { mergeServerAssets, moveItem, toPatch, type EditorPrompt } from "../editor-state";
+import { mergeServerAssets, toPatch, type EditorPrompt } from "../editor-state";
 import { EditorImages } from "./editor-images";
 import { StatusBadge } from "./status-badge";
 
