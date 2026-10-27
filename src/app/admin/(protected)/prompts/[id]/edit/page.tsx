@@ -27,14 +27,12 @@ export default async function EditPromptPage({
   }
   const [prompt, taxonomies] = loaded;
   return (
-    <section>
-      <h1 className="mb-6 text-3xl font-semibold">编辑</h1>
-      <PromptEditor
-        categories={taxonomies.categories}
-        initial={prompt}
-        models={taxonomies.models}
-        tags={taxonomies.tags}
-      />
-    </section>
+    <PromptEditor
+      categories={taxonomies.categories}
+      initial={prompt}
+      key={prompt.id}
+      models={taxonomies.models}
+      tags={taxonomies.tags}
+    />
   );
 }
