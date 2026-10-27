@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 import { Eyebrow } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "关于 · Prompt Gallery",
-  description: "Prompt Gallery 是面向公众的图片生成提示词灵感库。",
+  title: "关于 · 图种",
+  description: "图种 是面向公众的图片生成提示词灵感库。",
 };
 
 const points = [
   {
     icon: Eye,
     title: "按画面找写法",
-    body: "Prompt Gallery 收集可公开浏览的图片生成提示词和效果图，方便按画面找到写法，再复制到自己的生成工具里使用。",
+    body: "图种 收集可公开浏览的图片生成提示词和效果图，方便按画面找到写法，再复制到自己的生成工具里使用。",
   },
   {
     icon: FileText,
@@ -35,6 +35,10 @@ export default function AboutPage() {
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-10 pb-16 md:px-6 md:pt-14">
       <Eyebrow>About</Eyebrow>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">关于与来源说明</h1>
+      <p className="mt-5 max-w-2xl text-base leading-8 text-muted">
+        图种，读作“图 zhǒng”。每一条提示词，都是一颗能长出画面的种子。
+        我们收集图片与背后的写法，让灵感被看见，也能被带走。种下一句，长出想象。
+      </p>
       <ul className="mt-10 grid gap-4 sm:grid-cols-2">
         {points.map(({ icon: Icon, title, body }) => (
           <li className="rounded-xl border border-border bg-surface/60 p-5" key={title}>

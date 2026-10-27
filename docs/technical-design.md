@@ -1,4 +1,4 @@
-# Prompt Gallery 技术设计与 AI 开发执行规范
+# 图种 技术设计与 AI 开发执行规范
 
 版本：1.0 · 2026-10-26  
 需求依据：[产品需求文档](./prompt-gallery-prd.md)  

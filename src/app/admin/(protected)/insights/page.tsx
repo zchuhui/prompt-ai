@@ -14,7 +14,7 @@ import { formatPercent } from "@/shared/format";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "统计 · Prompt Gallery",
+  title: "统计 · 图种",
   robots: { index: false, follow: false },
 };
 

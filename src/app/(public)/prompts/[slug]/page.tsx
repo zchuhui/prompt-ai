@@ -26,12 +26,12 @@ function describe(prompt: { summary: string | null; promptText: string }) {
 export async function generateMetadata({ params }: Context): Promise<Metadata> {
   const prompt = await getPublishedPromptCached((await params).slug);
   if (!prompt) {
-    return { title: "未找到 · Prompt Gallery" };
+    return { title: "未找到 · 图种" };
   }
   const origin = new URL(getEnv().APP_URL).origin;
   const description = describe(prompt);
   return {
-    title: `${prompt.title} · Prompt Gallery`,
+    title: `${prompt.title} · 图种`,
     description,
     alternates: { canonical: `${origin}/prompts/${prompt.slug}` },
     openGraph: {

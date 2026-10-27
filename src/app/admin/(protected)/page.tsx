@@ -26,7 +26,7 @@ import { formatDateTime, formatPercent } from "@/shared/format";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "概览 · Prompt Gallery",
+  title: "概览 · 图种",
   robots: { index: false, follow: false },
 };
 

@@ -7,7 +7,7 @@ import { LoginForm } from "./login-form";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "登录 · Prompt Gallery",
+  title: "登录 · 图种",
   robots: { index: false, follow: false },
 };
 

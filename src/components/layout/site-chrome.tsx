@@ -9,9 +9,9 @@ import { SiteNav } from "./site-nav";
 export function BrandMark({ href = "/" }: { href?: string }) {
   return (
     <Link className="group inline-flex shrink-0 items-center gap-2.5" href={href}>
-      <LogoMark className="size-8 drop-shadow-[0_0_12px_rgb(34_211_238/0.35)]" />
-      <span className="text-[15px] font-semibold tracking-tight whitespace-nowrap">
-        Prompt <span className="font-medium text-accent">Gallery</span>
+      <LogoMark className="size-8 text-accent" />
+      <span className="text-xl font-semibold tracking-[0.12em] whitespace-nowrap">
+        图种
       </span>
     </Link>
   );
@@ -55,7 +55,7 @@ export function SiteFooter() {
         <div>
           <BrandMark />
           <p className="mt-3 max-w-sm text-sm leading-6 text-muted">
-            图片生成提示词灵感库。浏览效果图，复制原文提示词，在你的工具里复现。
+            种下一句，长出想象。浏览效果图，发现并复制提示词，在你的生成工具里探索。
           </p>
         </div>
         <div className="text-sm">

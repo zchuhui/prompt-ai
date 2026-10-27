@@ -15,7 +15,7 @@ import { PromptTable } from "./prompt-table";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "内容 · Prompt Gallery",
+  title: "内容 · 图种",
   robots: { index: false, follow: false },
 };
 

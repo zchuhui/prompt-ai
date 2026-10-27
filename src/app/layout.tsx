@@ -8,8 +8,8 @@ getEnv();
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "Prompt Gallery",
-  description: "面向公众开放的图片生成 Prompt 灵感库。",
+  title: "图种",
+  description: "图种，图片生成 Prompt 灵感库。种下一句，长出想象。浏览效果图，发现并复制提示词。",
 };
 
 export const viewport: Viewport = {

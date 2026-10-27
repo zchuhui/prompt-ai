@@ -162,7 +162,7 @@ export function Lightbox({ images, title }: { images: Image[]; title: string }) 
               className={cn(
                 "relative size-16 shrink-0 overflow-hidden rounded-lg border bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
                 imageIndex === index
-                  ? "border-accent shadow-[0_0_0_1px_rgb(34_211_238/0.4)]"
+                  ? "border-accent shadow-[0_0_0_1px_rgb(165_239_179/0.4)]"
                   : "border-border opacity-70 hover:opacity-100",
               )}
               key={image.id}

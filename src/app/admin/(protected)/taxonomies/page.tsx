@@ -7,7 +7,7 @@ import { getDatabase } from "@/server/db/client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "分类 · Prompt Gallery",
+  title: "分类 · 图种",
   robots: { index: false, follow: false },
 };
 

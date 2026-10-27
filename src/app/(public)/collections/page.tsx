@@ -10,7 +10,7 @@ import { getDatabase } from "@/server/db/client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "专题合集 · Prompt Gallery",
+  title: "专题合集 · 图种",
   description: "按主题整理的图片生成提示词合集。",
 };
 

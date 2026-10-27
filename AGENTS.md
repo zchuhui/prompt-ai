@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Prompt Gallery
+# 图种
 
 面向公众的图片生成 Prompt 灵感库。本文件是编码入口，不是产品长文。
 

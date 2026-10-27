@@ -29,7 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const params = parseGalleryParams(await searchParams);
   return {
-    title: "图片库 · Prompt Gallery",
+    title: "图片库 · 图种",
     description: "浏览效果图，找到感兴趣的内容，查看提示词并复制使用。",
     robots: isFiltered(params) ? { index: false, follow: true } : { index: true, follow: true },
   };
@@ -72,9 +72,9 @@ export default async function HomePage({
         query={params.q || undefined}
       />
       <section className="max-w-3xl">
-        <Eyebrow>Prompt Gallery · 图片生成灵感库</Eyebrow>
+        <Eyebrow>图种 · 图片生成 Prompt 灵感库</Eyebrow>
         <h1 className="mt-4 text-3xl leading-tight font-semibold tracking-tight md:text-5xl">
-          <span className="text-gradient">找到画面，复制提示词。</span>
+          <span className="text-gradient">种下一句，长出想象。</span>
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted">
           每条内容都附带原文 Prompt、模型与参数。看中哪张图，打开就能复制使用。

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="320"><rect width="960" height="320" fill="#07080a"/><svg x="64" y="60" width="100" height="100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="7" fill="#07080a"/>
+  <g stroke="#a5efb3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M3 10V3h7m12 0h7v7m0 12v7h-7m-12 0H3v-7"/>
+    <path d="M11 23C7 13 14 7 23 9c2 9-4 16-12 14Z"/>
+    <path d="m10 24 9-10"/>
+  </g>
+</svg>
+<g font-family="Noto Sans CJK SC,sans-serif"><text x="193" y="132" fill="#e6e8eb" font-size="58" font-weight="600" letter-spacing="8">图种</text><text x="68" y="224" fill="#a5efb3" font-size="28">种下一句，长出想象。</text><text x="68" y="270" fill="#8a919e" font-size="18">图片生成 Prompt 灵感库</text></g><g fill="#a5efb3"><circle cx="786" cy="256" r="12"/></g><circle cx="824" cy="256" r="12" fill="#73c9ac"/><circle cx="862" cy="256" r="12" fill="#e6e8eb"/></svg>

@@ -34,11 +34,11 @@ async function resolve({ params, searchParams }: Context) {
 export async function generateMetadata(context: Context): Promise<Metadata> {
   const { page, collection } = await resolve(context);
   if (!collection) {
-    return { title: "未找到 · Prompt Gallery" };
+    return { title: "未找到 · 图种" };
   }
   const origin = new URL(getEnv().APP_URL).origin;
   return {
-    title: `${collection.title} · 专题合集 · Prompt Gallery`,
+    title: `${collection.title} · 专题合集 · 图种`,
     description: collection.description ?? `${collection.title}，共 ${collection.total} 条提示词。`,
     alternates: { canonical: `${origin}/collections/${collection.slug}` },
     robots: page > 1 ? { index: false, follow: true } : undefined,

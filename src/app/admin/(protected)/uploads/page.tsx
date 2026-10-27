@@ -7,7 +7,7 @@ import { UploadWorkspace } from "./upload-workspace";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "上传 · Prompt Gallery",
+  title: "上传 · 图种",
   robots: { index: false, follow: false },
 };
 

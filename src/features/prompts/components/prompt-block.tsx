@@ -60,7 +60,7 @@ export function PromptBlock({
       aria-label={label}
       className={cn(
         "overflow-hidden rounded-xl border bg-[#0a0c10]",
-        emphasis ? "border-accent/30 shadow-[0_0_0_1px_rgb(34_211_238/0.06),0_12px_40px_-16px_rgb(34_211_238/0.35)]" : "border-border",
+        emphasis ? "border-accent/30 shadow-[0_0_0_1px_rgb(165_239_179/0.06),0_12px_40px_-16px_rgb(165_239_179/0.35)]" : "border-border",
       )}
     >
       <header className="flex items-center justify-between gap-3 border-b border-border bg-surface/60 px-3 py-2">
