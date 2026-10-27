@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SLUG_MAX, SLUG_MIN, SLUG_PATTERN } from "@/shared/slug";
 
 const uuid = z.uuid();
 
@@ -27,6 +28,12 @@ export const assetItemSchema = z.object({
 
 export const promptPatchSchema = z.object({
   version: z.number().int().positive(),
+  slug: z
+    .string()
+    .min(SLUG_MIN, `链接需要 ${SLUG_MIN} 到 ${SLUG_MAX} 个字符`)
+    .max(SLUG_MAX, `链接需要 ${SLUG_MIN} 到 ${SLUG_MAX} 个字符`)
+    .regex(SLUG_PATTERN, "链接只能包含小写字母、数字和连字符")
+    .optional(),
   title: z.string().max(120).optional(),
   summary: optionalText(500),
   promptText: z.string().max(50000).optional(),

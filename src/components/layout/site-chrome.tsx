@@ -1,25 +1,49 @@
-import { Images } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { Sheet } from "@/components/ui/sheet";
+import { HeaderSearch } from "./header-search";
+import { SiteNav } from "./site-nav";
+
+export function BrandMark() {
+  return (
+    <Link className="group inline-flex items-center gap-2.5" href="/">
+      <span className="relative inline-flex size-8 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 text-accent shadow-[0_0_20px_-6px_var(--accent)]">
+        <Sparkles aria-hidden="true" className="size-4" />
+      </span>
+      <span className="text-[15px] font-semibold tracking-tight">
+        Prompt<span className="text-accent">.</span>Gallery
+      </span>
+    </Link>
+  );
+}
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-border">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-4 px-6 py-4">
-        <Link className="inline-flex items-center gap-2 text-lg font-semibold tracking-tight" href="/">
-          <Images aria-hidden="true" size={18} />
-          Prompt Gallery
-        </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link className="min-h-11 inline-flex items-center" href="/">
-            图片库
-          </Link>
-          <Link className="min-h-11 inline-flex items-center" href="/collections">
-            专题合集
-          </Link>
-          <Link className="min-h-11 inline-flex items-center" href="/about">
-            关于
-          </Link>
-        </nav>
+    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/70 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center gap-4 px-4 md:px-6">
+        <BrandMark />
+        <div className="hidden md:block">
+          <SiteNav />
+        </div>
+        <Suspense fallback={<div className="ml-auto hidden h-10 w-80 md:block" />}>
+          <HeaderSearch className="ml-auto hidden w-full max-w-sm md:block" />
+        </Suspense>
+        <div className="ml-auto md:hidden">
+          <Sheet
+            title="导航"
+            trigger={<Menu aria-hidden="true" className="size-5" />}
+            triggerClassName="inline-flex size-11 items-center justify-center rounded-lg border border-border-strong text-muted"
+            triggerLabel="打开菜单"
+          >
+            <Suspense>
+              <HeaderSearch shortcut={false} />
+            </Suspense>
+            <div className="mt-4">
+              <SiteNav vertical />
+            </div>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
@@ -27,10 +51,32 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-border">
-      <div className="mx-auto flex w-full max-w-[1600px] justify-between gap-4 px-6 py-6 text-sm text-muted">
-        <p>生成效果会因模型版本、参数和随机性而变化。</p>
-        <Link href="/about">来源说明</Link>
+    <footer className="mt-auto border-t border-border/80">
+      <div className="mx-auto grid w-full max-w-[1600px] gap-8 px-4 py-10 md:grid-cols-[1.5fr_1fr_1fr] md:px-6">
+        <div>
+          <BrandMark />
+          <p className="mt-3 max-w-sm text-sm leading-6 text-muted">
+            图片生成提示词灵感库。浏览效果图，复制原文提示词，在你的工具里复现。
+          </p>
+        </div>
+        <div className="text-sm">
+          <p className="font-mono text-[11px] tracking-[0.2em] text-muted uppercase">浏览</p>
+          <ul className="mt-3 grid gap-2">
+            <li><Link className="text-foreground/80 hover:text-accent" href="/">图片库</Link></li>
+            <li><Link className="text-foreground/80 hover:text-accent" href="/collections">专题合集</Link></li>
+          </ul>
+        </div>
+        <div className="text-sm">
+          <p className="font-mono text-[11px] tracking-[0.2em] text-muted uppercase">说明</p>
+          <ul className="mt-3 grid gap-2">
+            <li><Link className="text-foreground/80 hover:text-accent" href="/about">关于与来源说明</Link></li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-border/60">
+        <p className="mx-auto w-full max-w-[1600px] px-4 py-4 font-mono text-[11px] text-muted md:px-6">
+          生成效果会因模型版本、参数和随机性而变化。
+        </p>
       </div>
     </footer>
   );

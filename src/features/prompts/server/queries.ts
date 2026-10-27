@@ -1,10 +1,12 @@
 import "server-only";
 
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
+import { cache } from "react";
 import { AppError } from "@/shared/errors";
 import { pageOffset } from "@/shared/pagination";
 import { likePattern } from "@/shared/search";
-import type { Database } from "@/server/db/client";
+import { getDatabase, type Database } from "@/server/db/client";
+import type { PromptCard, PromptCardPage } from "../types";
 import {
   assets,
   categories,
@@ -80,72 +82,117 @@ function publishedWhere(filters: GalleryFilters) {
   return sql.join(conditions, sql` and `);
 }
 
-export async function searchPublishedPrompts(db: Database, filters: GalleryFilters) {
+type CardRow = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  published_at: Date | string | null;
+  model_name: string | null;
+  model_slug: string | null;
+  image_count: number;
+  cover_id: string | null;
+  cover_width: number | null;
+  cover_height: number | null;
+  cover_alt: string | null;
+};
+
+const cardColumns = sql`
+  prompts.id,
+  prompts.slug,
+  prompts.title,
+  prompts.summary,
+  prompts.published_at,
+  models.name as model_name,
+  models.slug as model_slug,
+  (select count(*)::int from prompt_assets pa where pa.prompt_id = prompts.id) as image_count,
+  cover.id as cover_id,
+  cover.width as cover_width,
+  cover.height as cover_height,
+  cover_link.alt as cover_alt
+`;
+
+const cardJoins = sql`
+  left join models on models.id = prompts.model_id
+  left join assets cover on cover.id = prompts.cover_asset_id and cover.status = 'ready'
+  left join prompt_assets cover_link
+    on cover_link.prompt_id = prompts.id and cover_link.asset_id = prompts.cover_asset_id
+`;
+
+function toCard(row: CardRow): PromptCard {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    summary: row.summary,
+    publishedAt: row.published_at ? new Date(row.published_at).toISOString() : null,
+    modelName: row.model_name,
+    modelSlug: row.model_slug,
+    imageCount: Number(row.image_count),
+    cover: row.cover_id
+      ? {
+          id: row.cover_id,
+          width: row.cover_width ?? 1,
+          height: row.cover_height ?? 1,
+          alt: row.cover_alt,
+        }
+      : null,
+  };
+}
+
+/**
+ * Selects public cards. `extraJoins`, `where`, and `orderBy` must only
+ * reference published, non-deleted prompts.
+ */
+export async function selectPublishedCards(
+  db: Database,
+  input: { extraJoins?: SQL; where: SQL; orderBy: SQL; limit: number; offset?: number },
+): Promise<PromptCard[]> {
+  const rows = await db.execute<CardRow>(sql`
+    select ${cardColumns}
+    from prompts
+    ${cardJoins}
+    ${input.extraJoins ?? sql``}
+    where prompts.status = 'published' and prompts.deleted_at is null and ${input.where}
+    order by ${input.orderBy}
+    limit ${input.limit}
+    offset ${input.offset ?? 0}
+  `);
+  return rows.rows.map(toCard);
+}
+
+export async function searchPublishedPrompts(
+  db: Database,
+  filters: GalleryFilters,
+): Promise<PromptCardPage> {
   const where = publishedWhere(filters);
   const count = await db.execute<{ value: number }>(
     sql`select count(*)::int as value from prompts where ${where}`,
   );
-  const rows = await db.execute<{
-    id: string;
-    slug: string;
-    title: string;
-    summary: string | null;
-    published_at: Date;
-    model_name: string | null;
-    model_slug: string | null;
-    image_count: number;
-    cover_id: string | null;
-    cover_width: number | null;
-    cover_height: number | null;
-    cover_alt: string | null;
-  }>(sql`
-    select
-      prompts.id,
-      prompts.slug,
-      prompts.title,
-      prompts.summary,
-      prompts.published_at,
-      models.name as model_name,
-      models.slug as model_slug,
-      (select count(*)::int from prompt_assets pa where pa.prompt_id = prompts.id) as image_count,
-      cover.id as cover_id,
-      cover.width as cover_width,
-      cover.height as cover_height,
-      cover_link.alt as cover_alt
-    from prompts
-    left join models on models.id = prompts.model_id
-    left join assets cover on cover.id = prompts.cover_asset_id
-    left join prompt_assets cover_link
-      on cover_link.prompt_id = prompts.id and cover_link.asset_id = prompts.cover_asset_id
-    where ${where}
-    order by prompts.published_at desc, prompts.id desc
-    limit ${filters.pageSize}
-    offset ${pageOffset(filters.page, filters.pageSize)}
-  `);
+  const items = await selectPublishedCards(db, {
+    where,
+    orderBy: sql`prompts.published_at desc, prompts.id desc`,
+    limit: filters.pageSize,
+    offset: pageOffset(filters.page, filters.pageSize),
+  });
   return {
     total: Number(count.rows[0]?.value ?? 0),
     page: filters.page,
     pageSize: filters.pageSize,
-    items: rows.rows.map((row) => ({
-      id: row.id,
-      slug: row.slug,
-      title: row.title,
-      summary: row.summary,
-      publishedAt: new Date(row.published_at).toISOString(),
-      modelName: row.model_name,
-      modelSlug: row.model_slug,
-      imageCount: Number(row.image_count),
-      cover: row.cover_id
-        ? {
-            id: row.cover_id,
-            width: row.cover_width ?? 1,
-            height: row.cover_height ?? 1,
-            alt: row.cover_alt,
-          }
-        : null,
-    })),
+    items,
   };
 }
+
+export async function countPublishedPrompts(db: Database): Promise<number> {
+  const count = await db.execute<{ value: number }>(
+    sql`select count(*)::int as value from prompts where status = 'published' and deleted_at is null`,
+  );
+  return Number(count.rows[0]?.value ?? 0);
+}
+
+export const getPublishedPromptCached = cache((slug: string) =>
+  getPublishedPrompt(getDatabase(), slug),
+);
 
 export async function getPublishedPrompt(db: Database, slug: string) {
   const [prompt] = await db

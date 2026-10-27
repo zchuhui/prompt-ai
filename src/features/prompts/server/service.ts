@@ -19,9 +19,12 @@ import {
 } from "@/server/db/schema";
 import { publishFieldErrors } from "../publish";
 import type { PromptPatch } from "../schemas";
+import { selectPublishedCards } from "./queries";
 
 const notFound = () => new AppError(404, "NOT_FOUND", "内容不存在");
 const conflict = () => new AppError(409, "VERSION_CONFLICT", "内容已被其他人修改");
+const slugTaken = () =>
+  new AppError(409, "SLUG_CONFLICT", "链接已被其他内容使用", { slug: "链接已被其他内容使用" });
 
 function blankToNull(value: string | null | undefined): string | null | undefined {
   if (value === undefined) {
@@ -202,7 +205,25 @@ export async function updatePrompt(
       throw conflict();
     }
 
+    const slug = patch.slug ?? current.slug;
+    if (slug !== current.slug) {
+      if (current.publishedAt) {
+        throw new AppError(422, "UNPROCESSABLE", "首次发布后链接不能修改", {
+          slug: "首次发布后链接不能修改",
+        });
+      }
+      const [taken] = await tx
+        .select({ id: prompts.id })
+        .from(prompts)
+        .where(eq(prompts.slug, slug))
+        .limit(1);
+      if (taken) {
+        throw slugTaken();
+      }
+    }
+
     const next = {
+      slug,
       title: patch.title ?? current.title,
       summary: patch.summary === undefined ? current.summary : blankToNull(patch.summary),
       promptText: patch.promptText ?? current.promptText,
@@ -333,7 +354,10 @@ export async function updatePrompt(
       .update(prompts)
       .set({ ...next, coverAssetId, version: current.version + 1, updatedAt: new Date() })
       .where(and(eq(prompts.id, id), eq(prompts.version, patch.version)))
-      .returning({ version: prompts.version });
+      .returning({ version: prompts.version })
+      .catch((error: unknown) => {
+        throw sqlState(error) === "23505" ? slugTaken() : error;
+      });
     if (!updated) {
       throw conflict();
     }
@@ -624,26 +648,27 @@ export async function listRelatedPrompts(db: Database, id: string) {
   if (!current) {
     return [];
   }
-  const rows = await db.execute<{
-    id: string;
-    slug: string;
-    title: string;
-  }>(sql`
-    select p.id, p.slug, p.title
-    from prompts p
-    where p.status = 'published'
-      and p.deleted_at is null
-      and p.id <> ${id}
+  return selectPublishedCards(db, {
+    where: sql`
+      prompts.id <> ${id}
       and (
-        (${current.categoryId}::uuid is not null and p.category_id = ${current.categoryId}::uuid)
+        (${current.categoryId}::uuid is not null and prompts.category_id = ${current.categoryId}::uuid)
         or exists (
           select 1 from prompt_tags mine
           join prompt_tags other on other.tag_id = mine.tag_id
-          where mine.prompt_id = ${id} and other.prompt_id = p.id
+          where mine.prompt_id = ${id} and other.prompt_id = prompts.id
         )
       )
-    order by p.published_at desc, p.id desc
-    limit ${RELATED_LIMIT}
-  `);
-  return rows.rows;
+    `,
+    orderBy: sql`
+      (exists (
+        select 1 from prompt_tags mine
+        join prompt_tags other on other.tag_id = mine.tag_id
+        where mine.prompt_id = ${id} and other.prompt_id = prompts.id
+      )) desc,
+      prompts.published_at desc,
+      prompts.id desc
+    `,
+    limit: RELATED_LIMIT,
+  });
 }

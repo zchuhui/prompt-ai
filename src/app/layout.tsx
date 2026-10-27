@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { ToastProvider } from "@/components/ui/toast";
 import { getEnv } from "@/server/env";
 import "./globals.css";
 
@@ -11,6 +12,11 @@ export const metadata: Metadata = {
   description: "面向公众开放的图片生成 Prompt 灵感库。",
 };
 
+export const viewport: Viewport = {
+  themeColor: "#07080a",
+  colorScheme: "dark",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,7 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

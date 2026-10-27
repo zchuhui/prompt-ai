@@ -1,10 +1,11 @@
 import "server-only";
 
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { AppError } from "@/shared/errors";
 import { pageOffset } from "@/shared/pagination";
 import { createSlug } from "@/shared/slug";
 import type { Database } from "@/server/db/client";
+import { selectPublishedCards } from "@/features/prompts/server/queries";
 import {
   assets,
   collectionPrompts,
@@ -15,28 +16,63 @@ import {
 const notFound = () => new AppError(404, "NOT_FOUND", "合集不存在");
 const conflict = () => new AppError(409, "VERSION_CONFLICT", "合集已被其他人修改");
 
+type PublicCollectionRow = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  cover_asset_id: string | null;
+  updated_at: Date | string;
+  member_count: number;
+  covers: Array<{ id: string; width: number | null; height: number | null }> | null;
+};
+
+const publicMember = sql`
+  join prompts p on p.id = cp.prompt_id
+  where cp.collection_id = c.id
+    and p.status = 'published'
+    and p.deleted_at is null
+`;
+
 export async function listPublicCollections(db: Database) {
-  const rows = await db.execute<{
-    id: string;
-    slug: string;
-    title: string;
-    description: string | null;
-    cover_asset_id: string | null;
-  }>(sql`
-    select c.id, c.slug, c.title, c.description, c.cover_asset_id
+  const rows = await db.execute<PublicCollectionRow>(sql`
+    select
+      c.id,
+      c.slug,
+      c.title,
+      c.description,
+      c.cover_asset_id,
+      c.updated_at,
+      (select count(*)::int from collection_prompts cp ${publicMember}) as member_count,
+      (
+        select json_agg(json_build_object('id', a.id, 'width', a.width, 'height', a.height) order by picked.preferred desc, picked.position)
+        from (
+          select p.cover_asset_id, cp.position, (p.cover_asset_id = c.cover_asset_id) as preferred
+          from collection_prompts cp ${publicMember}
+            and p.cover_asset_id is not null
+          order by (p.cover_asset_id = c.cover_asset_id) desc, cp.position
+          limit 3
+        ) picked
+        join assets a on a.id = picked.cover_asset_id and a.status = 'ready'
+      ) as covers
     from collections c
     where c.status = 'published'
-      and exists (
-        select 1
-        from collection_prompts cp
-        join prompts p on p.id = cp.prompt_id
-        where cp.collection_id = c.id
-          and p.status = 'published'
-          and p.deleted_at is null
-      )
+      and exists (select 1 from collection_prompts cp ${publicMember})
     order by c.updated_at desc, c.id desc
   `);
-  return rows.rows;
+  return rows.rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    updatedAt: new Date(row.updated_at).toISOString(),
+    memberCount: Number(row.member_count),
+    covers: (row.covers ?? []).map((cover) => ({
+      id: cover.id,
+      width: cover.width ?? 1,
+      height: cover.height ?? 1,
+    })),
+  }));
 }
 
 export async function getPublicCollection(
@@ -53,45 +89,82 @@ export async function getPublicCollection(
   if (!collection) {
     return null;
   }
-  const members = await db
-    .select({
-      id: prompts.id,
-      slug: prompts.slug,
-      title: prompts.title,
-      summary: prompts.summary,
-      position: collectionPrompts.position,
-      coverAssetId: prompts.coverAssetId,
-    })
-    .from(collectionPrompts)
-    .innerJoin(prompts, eq(prompts.id, collectionPrompts.promptId))
-    .where(
-      and(
-        eq(collectionPrompts.collectionId, collection.id),
-        eq(prompts.status, "published"),
-        isNull(prompts.deletedAt),
-      ),
-    )
-    .orderBy(asc(collectionPrompts.position))
-    .limit(pageSize)
-    .offset(pageOffset(page, pageSize));
-  if (members.length === 0 && page === 1) {
+  const memberJoin = sql`join collection_prompts cp on cp.prompt_id = prompts.id and cp.collection_id = ${collection.id}`;
+  const [countRow] = (
+    await db.execute<{ value: number }>(sql`
+      select count(*)::int as value
+      from collection_prompts cp
+      join prompts on prompts.id = cp.prompt_id
+      where cp.collection_id = ${collection.id}
+        and prompts.status = 'published'
+        and prompts.deleted_at is null
+    `)
+  ).rows;
+  const total = Number(countRow?.value ?? 0);
+  if (total === 0) {
     return null;
   }
-  const coverId = members.some((member) => member.coverAssetId === collection.coverAssetId)
-    ? collection.coverAssetId
-    : (members[0]?.coverAssetId ?? null);
+  const members = await selectPublishedCards(db, {
+    extraJoins: memberJoin,
+    where: sql`true`,
+    orderBy: sql`cp.position asc`,
+    limit: pageSize,
+    offset: pageOffset(page, pageSize),
+  });
+  const [coverRow] = (
+    await db.execute<{ id: string; width: number | null; height: number | null }>(sql`
+      select a.id, a.width, a.height
+      from collection_prompts cp
+      join prompts on prompts.id = cp.prompt_id
+      join assets a on a.id = prompts.cover_asset_id and a.status = 'ready'
+      where cp.collection_id = ${collection.id}
+        and prompts.status = 'published'
+        and prompts.deleted_at is null
+      order by (a.id = ${collection.coverAssetId}::uuid) desc nulls last, cp.position
+      limit 1
+    `)
+  ).rows;
   return {
     id: collection.id,
     slug: collection.slug,
     title: collection.title,
     description: collection.description,
-    coverAssetId: coverId,
+    cover: coverRow
+      ? { id: coverRow.id, width: coverRow.width ?? 1, height: coverRow.height ?? 1 }
+      : null,
+    total,
+    page,
+    pageSize,
     members,
   };
 }
 
 export async function listAdminCollections(db: Database) {
-  return db.select().from(collections).orderBy(asc(collections.title));
+  const rows = await db.execute<{
+    id: string;
+    slug: string;
+    title: string;
+    description: string | null;
+    status: "draft" | "published";
+    version: number;
+    updated_at: Date | string;
+    member_count: number;
+  }>(sql`
+    select c.id, c.slug, c.title, c.description, c.status, c.version, c.updated_at,
+      (select count(*)::int from collection_prompts cp where cp.collection_id = c.id) as member_count
+    from collections c
+    order by c.updated_at desc, c.id desc
+  `);
+  return rows.rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    status: row.status,
+    version: row.version,
+    updatedAt: new Date(row.updated_at).toISOString(),
+    memberCount: Number(row.member_count),
+  }));
 }
 
 export async function getAdminCollection(db: Database, id: string) {
@@ -109,12 +182,32 @@ export async function getAdminCollection(db: Database, id: string) {
       position: collectionPrompts.position,
       title: prompts.title,
       status: prompts.status,
+      deletedAt: prompts.deletedAt,
+      coverAssetId: prompts.coverAssetId,
+      coverStatus: assets.status,
     })
     .from(collectionPrompts)
     .innerJoin(prompts, eq(prompts.id, collectionPrompts.promptId))
+    .leftJoin(assets, eq(assets.id, prompts.coverAssetId))
     .where(eq(collectionPrompts.collectionId, id))
     .orderBy(asc(collectionPrompts.position));
-  return { ...collection, members };
+  return {
+    id: collection.id,
+    slug: collection.slug,
+    title: collection.title,
+    description: collection.description,
+    status: collection.status,
+    coverAssetId: collection.coverAssetId,
+    version: collection.version,
+    updatedAt: collection.updatedAt.toISOString(),
+    members: members.map((member) => ({
+      promptId: member.promptId,
+      position: member.position,
+      title: member.title,
+      status: member.deletedAt ? ("deleted" as const) : member.status,
+      coverAssetId: member.coverStatus === "ready" ? member.coverAssetId : null,
+    })),
+  };
 }
 
 export async function createCollection(

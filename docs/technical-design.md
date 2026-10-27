@@ -170,9 +170,9 @@ prompt-ai/
 
 首页 URL：`/?q=龙&category=landscape&model=gpt-image&tags=healing,3d&page=1`。默认 page=1、pageSize=24，上限 48；排序 published_at DESC,id DESC。加载更多链接对应真实分页 URL，JS 增强为追加卡片；无 JS 时仍能翻页。页面历史保存已加载页和 scrollY，返回时恢复；筛选变化重置为第一页。第一页及后续页均 SSR，可直接访问。offset 分页允许并发发布时顺序变化，客户端追加按 id 去重。
 
-瀑布流使用 CSS Grid 行跨度测量方案：DOM 保持行优先顺序；以数据库宽高计算占位，ResizeObserver 更新跨度；不使用 grid-auto-flow:dense 打乱键盘顺序。小屏 2 列、768px 起 3 列、1024px 起 4 列、1440px 起 5 列。卡片限制极端长图高度并用 object-fit:contain 保留完整画面。
+瀑布流使用 CSS Grid 行跨度测量方案：DOM 保持行优先顺序；以数据库宽高设置 aspect-ratio 占位，ResizeObserver 更新跨度；不使用 grid-auto-flow:dense 打乱键盘顺序。网格初始为 `data-masonry="pending"`，按普通行高布局，客户端测量完成后切换为 `ready`，避免脚本运行前卡片重叠。小屏 2 列、768px 起 3 列、1024px 起 4 列、1440px 起 5 列。卡片限制极端长图高度并用 object-fit:contain 保留完整画面。
 
-视觉 token 初值：背景 #FAF9F6、正文 #242424、次级文字 #666666、边框 #E8E5DF、强调色 #456857；内容最大宽度 1600px。触摸目标至少 44px；轮播有按钮与键盘操作，弹层锁定焦点并支持 Esc。使用系统中文字体，避免首次访问下载巨大中文字体包。
+视觉 token（T10 起为深色）：背景 #07080A、表面 #0E1014 / #151820、边框 #1F232B / #2C323D、正文 #E6E8EB、次级文字 #8A919E、强调色 #22D3EE、点缀色 #A78BFA、强调色上的文字 #041014；内容最大宽度 1600px。元信息使用系统等宽字体栈，不下载网络字体。触摸目标至少 44px；轮播有按钮与键盘操作，弹层锁定焦点并支持 Esc。使用系统中文字体，避免首次访问下载巨大中文字体包。
 
 所有异步界面提供 loading/error/empty/retry；复制直接使用存储原文，不 trim 或格式化正文。剪贴板失败展示只读可选择文本。参数、负面 Prompt 独立复制。
 
@@ -201,7 +201,7 @@ prompt-ai/
 | analytics_events | id, event_id 唯一, kind, prompt_id nullable, path, query_text nullable, created_at |
 | audit_logs | id, admin_id, action, entity_type, entity_id, request_id, created_at；不记录 Prompt 全文和密码 |
 
-normalized_name 使用 NFKC、去两侧空白、小写。slug 自动用可读前缀加随机短标识生成，中文标题可退化为 p-短标识；冲突时重试。链接一经生成不随标题修改。
+normalized_name 使用 NFKC、去两侧空白、小写。slug 自动用可读前缀加随机短标识生成，中文标题可退化为 p-短标识；冲突时重试。链接不随标题自动修改。首次发布前（published_at 为空）管理员可以手动修改 slug，格式为小写字母、数字和连字符，3–80 字符，冲突返回 409；首次发布后再修改返回 422。
 
 索引：prompts(status,published_at DESC,id DESC) WHERE deleted_at IS NULL；category_id/model_id；prompt_tags(tag_id,prompt_id)；collection_prompts(prompt_id)；jobs(status,run_at)；sessions(expires_at)；assets(status,created_at)。
 
