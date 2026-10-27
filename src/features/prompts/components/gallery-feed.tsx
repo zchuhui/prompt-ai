@@ -11,26 +11,28 @@ type Saved = { startPage: number; loadedThrough: number; scrollY: number };
 
 const PRIORITY_COUNT = 6;
 
-let poppedAt = 0;
-let documentNavigationUsed = false;
+let popped = { at: 0, href: "" };
+let documentLoadHref: string | null = null;
 if (typeof window !== "undefined") {
   window.addEventListener("popstate", () => {
-    poppedAt = Date.now();
+    popped = { at: Date.now(), href: window.location.href };
   });
+  const entry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (entry?.type === "back_forward" || entry?.type === "reload") {
+    documentLoadHref = window.location.href;
+  }
 }
 
-/** Only back/forward and reload should restore a saved feed position. */
-function consumeRestoreIntent(): boolean {
-  let restore = Date.now() - poppedAt < 2000;
-  poppedAt = 0;
-  if (!documentNavigationUsed) {
-    documentNavigationUsed = true;
-    const entry = performance.getEntriesByType("navigation")[0] as
-      | PerformanceNavigationTiming
-      | undefined;
-    restore ||= entry?.type === "back_forward" || entry?.type === "reload";
-  }
-  return restore;
+/**
+ * Only back/forward and reload should restore a saved feed position. The check
+ * must be repeatable because Strict Mode runs the mount effect twice.
+ */
+function hasRestoreIntent(): boolean {
+  const href = window.location.href;
+  return (
+    (Date.now() - popped.at < 2000 && popped.href === href) ||
+    (documentLoadHref === href && performance.now() < 10_000)
+  );
 }
 
 function storageKey(query: string): string {
@@ -103,7 +105,7 @@ export function GalleryFeed({
     const previous = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
     let cancelled = false;
-    const saved = consumeRestoreIntent() ? readSaved(query) : null;
+    const saved = hasRestoreIntent() ? readSaved(query) : null;
 
     async function restore() {
       if (!saved || saved.startPage !== initial.page) {
@@ -134,18 +136,26 @@ export function GalleryFeed({
     }
     void restore();
 
+    // The next page resets scroll to the top before this feed unmounts; those
+    // scroll events belong to the new URL and must not overwrite the position.
+    const ownHref = window.location.href;
+    const saveOwn = () => {
+      if (window.location.href === ownHref) {
+        save();
+      }
+    };
     let frame = 0;
     const onScroll = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(save);
+      frame = requestAnimationFrame(saveOwn);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("pagehide", save);
+    window.addEventListener("pagehide", saveOwn);
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("pagehide", save);
+      window.removeEventListener("pagehide", saveOwn);
       window.history.scrollRestoration = previous;
     };
   }, [fetchPage, initial.page, query, save]);

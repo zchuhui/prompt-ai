@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="relative flex w-full flex-1 flex-col items-center justify-center px-4 py-16">
+    <main className="relative flex w-full flex-1 flex-col items-center justify-center overflow-hidden px-4 py-16">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-1/4 left-1/2 -z-10 size-[28rem] -translate-x-1/2 rounded-full bg-accent/10 blur-3xl"

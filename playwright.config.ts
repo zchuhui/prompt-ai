@@ -1,10 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 60_000,
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL,
     trace: "retain-on-failure",
   },
   projects: [
@@ -14,7 +16,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "pnpm dev --port 3000",
-    url: "http://127.0.0.1:3000",
+    url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,
   },
