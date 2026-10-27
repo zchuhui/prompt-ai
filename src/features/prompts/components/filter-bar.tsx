@@ -213,7 +213,7 @@ export function FilterBar({
           />
           <input
             aria-label="搜索标题、简介、提示词或标签"
-            className="min-h-12 w-full rounded-xl border border-border-strong bg-surface/80 pr-3 pl-10 text-[15px] text-foreground backdrop-blur placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+            className="min-h-12 w-full rounded-xl border border-border-strong bg-surface/80 pr-3 pl-10 text-[15px] text-foreground backdrop-blur placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
             defaultValue={params.q}
             key={params.q}
             maxLength={100}

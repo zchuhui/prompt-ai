@@ -149,9 +149,9 @@ function PromptSearch({
         </p>
       ) : null}
       {results && results.length === 0 ? (
-        <p className="py-4 text-center text-xs text-muted">没有匹配的内容</p>
+        <p className="flex h-[420px] items-center justify-center text-xs text-muted">没有匹配的内容</p>
       ) : null}
-      <ul className="grid max-h-[420px] gap-1 overflow-y-auto pr-1">
+      <ul className={cn("grid h-[420px] content-start gap-1 overflow-y-auto pr-1", results?.length === 0 && "hidden")}>
         {(results ?? []).map((item) => {
           const added = memberIds.has(item.id);
           return (
@@ -562,7 +562,7 @@ export function CollectionEditor({ initial }: { initial: EditorCollection }) {
               <Button asChild className="px-2 sm:px-3" size="sm" variant="ghost">
                 <Link href={`/collections/${saved.slug}`} target="_blank">
                   <ExternalLink aria-hidden="true" className="size-4" />
-                  <span className="hidden sm:inline">前台</span>
+                  <span className="sr-only sm:not-sr-only">前台</span>
                 </Link>
               </Button>
             ) : null}

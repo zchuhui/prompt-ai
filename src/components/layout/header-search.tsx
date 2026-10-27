@@ -44,7 +44,7 @@ export function HeaderSearch({ className, shortcut = true }: { className?: strin
       />
       <input
         aria-label="搜索提示词"
-        className="min-h-10 w-full rounded-lg border border-border-strong bg-surface/70 pr-10 pl-9 text-sm text-foreground placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+        className="min-h-10 w-full rounded-lg border border-border-strong bg-surface/70 pr-10 pl-9 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
         defaultValue={q}
         key={q}
         maxLength={100}

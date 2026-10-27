@@ -700,14 +700,14 @@ export function PromptEditor({
             <Button asChild className="px-2 sm:px-3" size="sm" variant="ghost">
               <Link href={`/admin/prompts/${prompt.id}/preview`} target="_blank">
                 <Eye aria-hidden="true" className="size-4" />
-                <span className="hidden sm:inline">预览</span>
+                <span className="sr-only sm:not-sr-only">预览</span>
               </Link>
             </Button>
             {isPublished ? (
               <Button asChild className="px-2 sm:px-3" size="sm" variant="ghost">
                 <Link href={`/prompts/${saved.slug}`} target="_blank">
                   <ExternalLink aria-hidden="true" className="size-4" />
-                  <span className="hidden sm:inline">前台</span>
+                  <span className="sr-only sm:not-sr-only">前台</span>
                 </Link>
               </Button>
             ) : null}

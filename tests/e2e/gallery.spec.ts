@@ -47,6 +47,11 @@ test("detail page copies the prompt and pages the lightbox with the keyboard", a
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   expect(copied.length).toBeGreaterThan(0);
 
+  await page.evaluate(() => Object.defineProperty(navigator, "share", { configurable: true, value: undefined }));
+  await page.getByRole("button", { name: "分享" }).click();
+  await expect(page.getByText("链接已复制").first()).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(new URL(detail, page.url()).toString());
+
   const counter = page.getByText(/^\d+ \/ \d+$/).first();
   test.skip((await counter.count()) === 0, "this prompt has a single image");
   await page.getByRole("button", { name: /^放大查看/ }).click();

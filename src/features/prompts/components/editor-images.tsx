@@ -125,7 +125,7 @@ export function EditorImages({
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <input
                   aria-label={`第 ${index + 1} 张图片的替代文字`}
-                  className="min-h-9 w-full rounded-md border border-border bg-background/60 px-2.5 text-xs placeholder:text-muted/70 focus:border-accent focus:outline-none"
+                  className="min-h-9 w-full rounded-md border border-border bg-background/60 px-2.5 text-xs placeholder:text-muted focus:border-accent focus:outline-none"
                   maxLength={300}
                   placeholder="替代文字（留空则使用标题）"
                   value={item.alt ?? ""}
