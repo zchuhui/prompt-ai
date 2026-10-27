@@ -264,7 +264,7 @@ async function linkReadyAsset(
       promptId: item.promptId,
       assetId,
       position,
-      alt: item.fileName.slice(0, 300),
+      alt: null,
     })
     .onConflictDoNothing();
   const [cover] = await tx

@@ -48,7 +48,15 @@ export function CardPicture({
   );
 }
 
-export function GalleryCard({ card, priority = false }: { card: PromptCard; priority?: boolean }) {
+export function GalleryCard({
+  card,
+  priority = false,
+  titleAs: Title = "h2",
+}: {
+  card: PromptCard;
+  priority?: boolean;
+  titleAs?: "h2" | "h3";
+}) {
   const ratio = card.cover ? cardRatio(card.cover) : 1;
   return (
     <Link
@@ -76,9 +84,9 @@ export function GalleryCard({ card, priority = false }: { card: PromptCard; prio
         ) : null}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-3">
-          <h2 className="line-clamp-2 text-sm leading-5 font-medium text-white drop-shadow">
+          <Title className="line-clamp-2 text-sm leading-5 font-medium text-white drop-shadow">
             {card.title}
-          </h2>
+          </Title>
           <p className="mt-1 truncate font-mono text-[11px] text-white/65">
             {card.modelName ?? "未标注模型"}
           </p>
