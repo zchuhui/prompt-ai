@@ -1,18 +1,17 @@
-import { Menu, Sparkles } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { Sheet } from "@/components/ui/sheet";
 import { HeaderSearch } from "./header-search";
 import { SiteNav } from "./site-nav";
 
 export function BrandMark({ href = "/" }: { href?: string }) {
   return (
-    <Link className="group inline-flex items-center gap-2.5" href={href}>
-      <span className="relative inline-flex size-8 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 text-accent shadow-[0_0_20px_-6px_var(--accent)]">
-        <Sparkles aria-hidden="true" className="size-4" />
-      </span>
-      <span className="text-[15px] font-semibold tracking-tight">
-        Prompt<span className="text-accent">.</span>Gallery
+    <Link className="group inline-flex shrink-0 items-center gap-2.5" href={href}>
+      <LogoMark className="size-8 drop-shadow-[0_0_12px_rgb(34_211_238/0.35)]" />
+      <span className="text-[15px] font-semibold tracking-tight whitespace-nowrap">
+        Prompt <span className="font-medium text-accent">Gallery</span>
       </span>
     </Link>
   );
