@@ -1,3 +1,5 @@
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
@@ -67,6 +69,9 @@ const cascadingForeignKeys = [
 
 describe("migrations", () => {
   const pool = new Pool({ connectionString: migrateUrl });
+  pool.on("error", () => {
+    // Recreating the database terminates this pool's open connections.
+  });
 
   afterAll(async () => {
     await pool.end();
@@ -89,7 +94,7 @@ describe("migrations", () => {
     const journal = await pool.query<{ count: number }>(
       "select count(*)::int as count from drizzle.__drizzle_migrations",
     );
-    expect(journal.rows[0]?.count).toBe(1);
+    expect(journal.rows[0]?.count).toBe(2);
 
     const indexes = await pool.query<{ indexdef: string }>(
       `select indexdef from pg_indexes
@@ -131,5 +136,56 @@ describe("migrations", () => {
     expect(definitions.get("analytics_events.prompt_id")).toContain(
       "ON DELETE SET NULL",
     );
+    expect(definitions.get("upload_batches.target_prompt_id")).toContain(
+      "ON DELETE RESTRICT",
+    );
+
+    const columns = await pool.query<{ column_name: string; is_nullable: string }>(
+      `select column_name, is_nullable from information_schema.columns
+       where table_schema = 'public' and table_name = 'assets'
+         and column_name in ('source_key', 'original_key')`,
+    );
+    const nullable = new Map(columns.rows.map((row) => [row.column_name, row.is_nullable]));
+    expect(nullable.get("source_key")).toBe("NO");
+    expect(nullable.get("original_key")).toBe("YES");
+  });
+
+  it("upgrades a database that already has an asset from the initial migration", async () => {
+    const previous = mkdtempSync(path.join(tmpdir(), "pg-migrate-"));
+    mkdirSync(path.join(previous, "meta"));
+    cpSync(path.join(migrationsFolder, "0000_init.sql"), path.join(previous, "0000_init.sql"));
+    writeFileSync(
+      path.join(previous, "meta", "_journal.json"),
+      JSON.stringify({
+        version: "7",
+        dialect: "postgresql",
+        entries: [
+          {
+            idx: 0,
+            version: "7",
+            when: 1793056369929,
+            tag: "0000_init",
+            breakpoints: true,
+          },
+        ],
+      }),
+    );
+
+    try {
+      await recreateDatabase(
+        withDatabase(databaseUrl, "postgres"),
+        connectionDatabaseName(migrateUrl),
+      );
+      await migrateDatabase(migrateUrl, previous);
+      await pool.query("insert into assets (original_key) values ('legacy-original')");
+      await migrateDatabase(migrateUrl, migrationsFolder);
+      const upgraded = await pool.query<{ source_key: string; original_key: string }>(
+        "select source_key, original_key from assets",
+      );
+      expect(upgraded.rows[0]?.original_key).toBe("legacy-original");
+      expect(upgraded.rows[0]?.source_key).toMatch(/^legacy-source\//);
+    } finally {
+      rmSync(previous, { recursive: true, force: true });
+    }
   });
 });

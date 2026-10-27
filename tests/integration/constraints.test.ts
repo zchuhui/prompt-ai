@@ -140,11 +140,17 @@ describe("database constraints", () => {
 
     const [firstAsset] = await db
       .insert(assets)
-      .values({ originalKey: "shared-a", status: "ready", width: 8000, height: 5000 })
+      .values({
+        sourceKey: "shared-a-source",
+        originalKey: "shared-a",
+        status: "ready",
+        width: 8000,
+        height: 5000,
+      })
       .returning();
     const [secondAsset] = await db
       .insert(assets)
-      .values({ originalKey: "shared-b", status: "ready" })
+      .values({ sourceKey: "shared-b-source", originalKey: "shared-b", status: "ready" })
       .returning();
     const [otherPrompt] = await db
       .insert(prompts)
@@ -157,6 +163,7 @@ describe("database constraints", () => {
     await expectSqlState(
       () =>
         db.insert(assets).values({
+          sourceKey: "too-many-pixels-source",
           originalKey: "too-many-pixels",
           width: 8000,
           height: 6000,

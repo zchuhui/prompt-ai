@@ -1,0 +1,29 @@
+{
+	admin off
+}
+
+:443 {
+	tls internal
+	request_body {
+		max_size 22MB
+	}
+	handle /api/v1/media/* {
+		reverse_proxy web:3000 {
+			header_up X-Real-IP {remote_host}
+			header_up -X-Forwarded-For
+			header_down Cache-Control "no-store"
+			transport http {
+				response_header_timeout 120s
+			}
+		}
+	}
+	handle {
+		reverse_proxy web:3000 {
+			header_up X-Real-IP {remote_host}
+			header_up -X-Forwarded-For
+			transport http {
+				response_header_timeout 120s
+			}
+		}
+	}
+}

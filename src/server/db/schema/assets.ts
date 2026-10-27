@@ -15,7 +15,8 @@ export const assets = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     status: assetStatus("status").notNull().default("uploading"),
-    originalKey: text("original_key").notNull().unique(),
+    sourceKey: text("source_key").notNull().unique(),
+    originalKey: text("original_key").unique(),
     cardKey: text("card_key"),
     detailKey: text("detail_key"),
     mimeType: text("mime_type"),
@@ -40,8 +41,12 @@ export const assets = pgTable(
       sql`(${table.width} is null and ${table.height} is null) or (${table.width} > 0 and ${table.height} > 0 and cast(${table.width} as bigint) * cast(${table.height} as bigint) <= 40000000)`,
     ),
     check(
+      "assets_source_key_present",
+      sql`char_length(${table.sourceKey}) > 0`,
+    ),
+    check(
       "assets_original_key_present",
-      sql`char_length(${table.originalKey}) > 0`,
+      sql`${table.originalKey} is null or char_length(${table.originalKey}) > 0`,
     ),
   ],
 );

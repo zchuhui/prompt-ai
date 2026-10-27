@@ -42,15 +42,20 @@ pnpm db:seed
 | 命令 | 作用 |
 |---|---|
 | `pnpm dev` | 启动开发服务器 |
-| `pnpm build` | 构建 Next.js，并产出 standalone |
+| `pnpm worker:dev` | 用 tsx 监视图片处理 Worker |
+| `pnpm build` | 构建 Next.js standalone，并用 tsup 构建 Worker |
 | `pnpm start` | 复制静态资源后启动 standalone 服务 |
+| `pnpm worker:start` | 运行 `dist/worker/index.js` |
 | `pnpm lint` | `eslint .` |
 | `pnpm typecheck` | 生成 Next 路由类型后执行 `tsc --noEmit` |
 | `pnpm test` | 运行 Vitest 单元测试 |
-| `pnpm test:integration` | 在独立测试库上运行迁移、约束和草稿隔离测试 |
+| `pnpm test:integration` | 在独立测试库上运行迁移、约束、认证、上传和公开隔离测试 |
+| `pnpm test:e2e` | 用 Playwright 打开本机开发服务器 |
 | `pnpm db:generate` | 根据 schema 生成迁移 |
 | `pnpm db:migrate` | 应用迁移 |
 | `pnpm db:seed` | 幂等写入开发种子 |
+| `pnpm admin:create` | 交互式创建唯一管理员 |
+| `pnpm admin:reset` | 交互式重置管理员密码并清除会话 |
 | `pnpm check` | lint、typecheck、test、build |
 
-`pnpm test:integration` 会删除并重建 `DATABASE_URL` 对应的 `*_test` 库，不会动开发库。`worker:*` 和 `admin:*` 会在后续任务里加入。
+`pnpm test:integration` 会删除并重建 `DATABASE_URL` 对应的 `*_test` 库，不会动开发库。创建管理员使用 `pnpm admin:create`，密码只在终端里隐藏输入。

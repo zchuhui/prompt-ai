@@ -39,6 +39,42 @@ services:
     entrypoint: ["sh", "/init/minio-init.sh"]
     restart: "no"
 
+  web:
+    profiles: ["app"]
+    build: .
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      S3_ENDPOINT: http://minio:9000
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  worker:
+    profiles: ["app"]
+    build: .
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      S3_ENDPOINT: http://minio:9000
+    command: ["node", "dist/worker/index.js"]
+    depends_on:
+      - postgres
+      - minio
+
+  caddy:
+    profiles: ["app"]
+    image: caddy:2.10.2
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+
 volumes:
   postgres_data:
   minio_data:

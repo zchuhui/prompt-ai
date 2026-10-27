@@ -24,3 +24,12 @@ export function getDatabase(): Database {
   const pool = (globalForDb.promptGalleryPool ??= createPool(connectionString));
   return createDatabase(pool);
 }
+
+export async function closeDatabase(): Promise<void> {
+  const pool = globalForDb.promptGalleryPool;
+  if (!pool) {
+    return;
+  }
+  globalForDb.promptGalleryPool = undefined;
+  await pool.end();
+}
